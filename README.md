@@ -1,4 +1,4 @@
-Summer-Internship-26
+#Summer-Internship-26
 
 A log of tasks, projects, and learnings from my Summer 2026 internship. Each task gets its own folder and a short write-up; this README is the index.
 
