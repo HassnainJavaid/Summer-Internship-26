@@ -108,3 +108,115 @@ void hash_map_destroy(HashMap* map) {
     free(map->buckets);
     free(map);
 }
+void hash_map_insert(Hashmap* map,const char* key,int valeu)
+{
+    if(!map||!key){
+        return;
+    }
+    if(should_resize(map)){
+        resize_map(map);
+    }
+    size_t index = get_bucket_index(map,key);
+
+    HashNode* current = map->buckets[index];
+    while(current){
+        if(strcmp(current->key,key)==0){
+            current->valeu = valeu;
+            map->version++;
+            return;
+        }
+        current = current->next;
+    }
+   HashNode* new_node = malloc(sizeof(HashNode));
+   if(!new_node){
+       fprintf(stderr,"Error:failed to allocate Hash node\n");
+       return;
+   }
+   char* key_copy = strdup(key);
+   if(!key_copy){
+       free(new_node);
+       fprintf(stderr,"Error: Failed to duplicate key\n");
+       return;
+   }
+   new_node->key = key_copy;
+   new_node-> valeu = valeu;
+   new_node->next = map->buckets[index];
+   map->buckets[index] = new_node;
+   map->size++;
+   map->version++;
+}
+bool hash_map_get(const HashMap* map,const char* key ,int* out_value){
+    if(!map||!key)
+        return false;
+    size_t index = get_bucket_index(map,key);
+    HashNode* current map->bucket[index];
+
+    while(current){
+        if(strcmp(current->key,key)==0){
+            if(out_value) 
+                *out_value = current_value;
+            return true;
+        }
+        current = current->next;
+    }
+    return false;
+}
+bool hash_map_contains(const HashMap* map,const char* key){
+    int dummy;
+    return hash_map_get(map,key,&dummy);
+}
+size_t hash_map_size(const HashMap* map)
+{
+    return map ? map->size:0;
+}
+void hash_map_clear(Hashmap* map){
+    if(!map)
+        return;
+    for(size_t i = 0;i < map->capacity;i++){
+        HashNode* current = map->buckets[i];
+        while(current) {
+            HashNode* next = current->next;
+            free(current->key);
+            free(current);
+            current = next;
+        }
+        map->buckets[i] = NULL:
+    }
+    map->size = 0;
+    map->version++;
+}
+void hash_map_print_stats(const HashMap* map) {
+    if (!map) {
+        printf("Hash map: NULL\n");
+        return;
+    }
+    
+    printf("=== Hash Map Statistics ===\n");
+    printf("Size: %zu entries\n", map->size);
+    printf("Capacity: %zu buckets\n", map->capacity);
+    printf("Load Factor: %.2f (threshold: %.2f)\n", 
+           (float)map->size / map->capacity, map->load_factor);
+    size_t max_chain = 0;
+    size_t empty_buckets = 0;
+    size_t total_chain_length = 0;
+    
+    for (size_t i = 0; i < map->capacity; i++) {
+        size_t chain_len = 0;
+        HashNode* current = map->buckets[i];
+        while (current) {
+            chain_len++;
+            current = current->next;
+        }
+        
+        if (chain_len == 0) empty_buckets++;
+        if (chain_len > max_chain) max_chain = chain_len;
+        total_chain_length += chain_len;
+    }
+    
+    printf("Empty Buckets: %zu (%.2f%%)\n", empty_buckets, 
+           100.0 * empty_buckets / map->capacity);
+    printf("Max Chain Length: %zu\n", max_chain);
+    printf("Average Chain Length: %.2f\n", 
+           (double)total_chain_length / map->capacity);
+    printf("==========================\n");
+}
