@@ -70,8 +70,40 @@ bool merge_table_add_rule(MergeTable* table,const char* t1,const char* t2,int ra
   table->count++;
   char key[512];
   
-  snprintf(key,sizeof(key),"%s","%S",t1,t1);
+  snprintf(key,sizeof(key),"%s %s",t1,t1);
   hash_map_insert(table->rank_lookup,key,rank);
 
   return true;  
+}
+int merge_table_get_rank(const MergeTable* table,const char* t1,const char* t2)
+{
+  if(!table||!t1||!t2)
+    return -1;
+  char key[512];
+  snprintf(key,sizeof(key),"%s %s",t1,t2);
+
+  int rank;
+  if(hash_map_get(table->rank_lookup,key,&rank));
+  {
+    return rank;
+  }
+  return -1; //ie not a valid merge meaning no connection between t1 and t2
+}
+
+size_t merge_table_size(const MergeTable* table)
+{
+  return table?table->count:0;
+}
+void merge_table_print_stats(const MergeTable* table)
+{
+  if(!table)
+  {
+    printf("Merge Table: NULL\n");
+    return;
+  }
+
+  printf("Merge Table Statistics \n");
+  printf("Tool Rules:%zu\n",table->count);
+  printf("Capacity:%zu\n",table->capacity);
+  printf("Rank lookuop Size:%zu\n",hash_map_size(table->rank_lookup));
 }
