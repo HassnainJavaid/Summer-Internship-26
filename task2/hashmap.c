@@ -1,4 +1,4 @@
-#include "hash_map.h"
+#include "hashmap.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -108,7 +108,7 @@ void hash_map_destroy(HashMap* map) {
     free(map->buckets);
     free(map);
 }
-void hash_map_insert(Hashmap* map,const char* key,int valeu)
+void hash_map_insert(HashMap* map,const char* key,int valeu)
 {
     if(!map||!key){
         return;
@@ -121,7 +121,7 @@ void hash_map_insert(Hashmap* map,const char* key,int valeu)
     HashNode* current = map->buckets[index];
     while(current){
         if(strcmp(current->key,key)==0){
-            current->valeu = valeu;
+            current->value = valeu;
             map->version++;
             return;
         }
@@ -139,7 +139,7 @@ void hash_map_insert(Hashmap* map,const char* key,int valeu)
        return;
    }
    new_node->key = key_copy;
-   new_node-> valeu = valeu;
+   new_node-> value = valeu;
    new_node->next = map->buckets[index];
    map->buckets[index] = new_node;
    map->size++;
@@ -149,12 +149,12 @@ bool hash_map_get(const HashMap* map,const char* key ,int* out_value){
     if(!map||!key)
         return false;
     size_t index = get_bucket_index(map,key);
-    HashNode* current map->bucket[index];
+    HashNode* current = map->buckets[index];
 
     while(current){
         if(strcmp(current->key,key)==0){
             if(out_value) 
-                *out_value = current_value;
+                *out_value = current->value;
             return true;
         }
         current = current->next;
@@ -169,7 +169,7 @@ size_t hash_map_size(const HashMap* map)
 {
     return map ? map->size:0;
 }
-void hash_map_clear(Hashmap* map){
+void hash_map_clear(HashMap* map){
     if(!map)
         return;
     for(size_t i = 0;i < map->capacity;i++){
@@ -180,7 +180,7 @@ void hash_map_clear(Hashmap* map){
             free(current);
             current = next;
         }
-        map->buckets[i] = NULL:
+        map->buckets[i] = NULL;
     }
     map->size = 0;
     map->version++;

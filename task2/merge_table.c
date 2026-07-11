@@ -6,9 +6,9 @@
 MergeTable* merge_table_create(size_t initial_capacity)
 {
   MergeTable* table = malloc(sizeof(MergeTable));
-  if(!tabel){
+  if(!table){
     fprintf(stderr,"Error: Failed to allocate merge Table\n");
-    return NULL:
+    return NULL;
   }
   if(initial_capacity < 100)
     initial_capacity = 1000;
@@ -18,7 +18,7 @@ MergeTable* merge_table_create(size_t initial_capacity)
     fprintf(stderr,"Error: Failed to allocate merge rules array\n");
     return NULL;
   }
-  table->rank_lookup = hash_map_create(intitial_capacity);
+  table->rank_lookup = hash_map_create(initial_capacity);
   if(!table->rank_lookup){
     free(table->rules);
     free(table);
@@ -41,7 +41,8 @@ void merge_table_destroy(MergeTable* table){
   hash_map_destroy(table->rank_lookup);
   free(table);
 }
-bool merge_table_add_rule(MergeTable* table,const char* t1,const char* t2,inrt rank){
+bool merge_table_add_rule(MergeTable* table,const char* t1,const char* t2,int rank)
+{
   if(!table||!t1||!t2)
     return false;
   if(table->count >= table->capacity){
@@ -56,18 +57,19 @@ bool merge_table_add_rule(MergeTable* table,const char* t1,const char* t2,inrt r
   }
   char* t1_copy = strdup(t1);
   char* t2_copy = strdup(t2);
-  if(!t1_copy || !t2copy)
+  if(!t1_copy || !t2_copy)
   {
     free(t1_copy);
     free(t2_copy);
     fprintf(stderr, "ERROR: Failed to duplicate merge tokens\n");
     return false;
   }
-  table->rules[table->count].token1 = t1.copy;
-  table->rules[table-.count].token2 = t2.copy;
-  table->rules[table-.count].rank = rank;
+  table->rules[table->count].token1 = t1_copy;
+  table->rules[table->count].token2 = t2_copy;
+  table->rules[table->count].rank = rank;
   table->count++;
-  char key{512];
+  char key[512];
+  
   snprintf(key,sizeof(key),"%s","%S",t1,t1);
   hash_map_insert(table->rank_lookup,key,rank);
 

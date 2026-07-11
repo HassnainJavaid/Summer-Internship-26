@@ -1,4 +1,8 @@
-#include "hash_map.h"
+#ifndef MERGE_TABLE_H
+#define MERGE_TABLE_H
+
+
+#include "hashmap.h"
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -21,4 +25,4 @@ int merge_table_get_rank(const MergeTable* table, const char* t1, const char* t2
 size_t merge_table_size(const MergeTable* table);
 void merge_table_print_stats(const MergeTable* table);
 
-#endif 
+#endif
