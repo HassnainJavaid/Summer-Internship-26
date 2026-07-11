@@ -41,3 +41,35 @@ void merge_table_destroy(MergeTable* table){
   hash_map_destroy(table->rank_lookup);
   free(table);
 }
+bool merge_table_add_rule(MergeTable* table,const char* t1,const char* t2,inrt rank){
+  if(!table||!t1||!t2)
+    return false;
+  if(table->count >= table->capacity){
+    size_t new_capacity = table->capacity*2;
+    MergeRule* new_rules = realloc(table->rules,new_capacity * sizeof(MergeRule));
+    if(!new_rules){
+      fprintf(stderr,"Error: Failed to resize merge  rules\n");
+      return false;
+    }
+    table->rules = new_rules;
+    table->capacity = new_capacity;
+  }
+  char* t1_copy = strdup(t1);
+  char* t2_copy = strdup(t2);
+  if(!t1_copy || !t2copy)
+  {
+    free(t1_copy);
+    free(t2_copy);
+    fprintf(stderr, "ERROR: Failed to duplicate merge tokens\n");
+    return false;
+  }
+  table->rules[table->count].token1 = t1.copy;
+  table->rules[table-.count].token2 = t2.copy;
+  table->rules[table-.count].rank = rank;
+  table->count++;
+  char key{512];
+  snprintf(key,sizeof(key),"%s","%S",t1,t1);
+  hash_map_insert(table->rank_lookup,key,rank);
+
+  return true;  
+}
