@@ -1,5 +1,6 @@
 #include "tokenizer_loader.h"
 #include<stdio.h>
+#include"hashmap.h"
 #include<stdlib.h>
 #include<string.h>
 #include<stdbool.h>
@@ -207,4 +208,144 @@ static HashMap* build_inverse_vocab(HashMap* vocab)
     Entry* entries = NULL;
     size_t entry_count = 0;
 
+    size_t capacity = hash_map_get_capacity(vocab);
+
+    for(size_t i = 0; i < capacity;i++)
+    {
+        HashNode* current = hash_map_get_bucket(vocab,i);
+        while(current)
+        {
+            const char* token = hash_map_get_key(current);
+            int id = hash_map_get_value(current);
+            char key_str[32];
+            snprintf(key_str,sizeof(key_str),"%d",id);
+            hash_map_insert(inverse,key_str,id);
+
+            current = hash_map_get_next(current);
+
+        }
+    }
+    return inverse;
+}
+
+
+TokenizerData* tokenizer_init(const char* vocab_path,const char* merges_path)
+{
+    printf("Initializing Tokenizer Loader\n");
+
+    TokenizerData* data = malloc(sizeof(TokenizerData));
+    if(!data)
+    {
+        fprintf(stderr,"Error: Failed to allocate tokenizer data\n");
+        return NULL;
+    }
+
+    data->vocab = load_vocab_json(vocab_path);
+
+    if(!data->vocab)
+    {
+        fprintf(stderr,"Error: Failed to laod vocabulary\n");
+        free(data);
+        return NULL;
+    }
+
+    data->merges = load_merges_txt(merges_path);
+    if(!data->merges)
+    {
+        fprintf(stderr,"Error: Failed to laod merge rules\n");
+        free(data);
+        return NULL;
+    }
+
+    data->id_to_token = hash_map_create(65536);
+    if(!data->id_to_token)
+    {
+        fprintf(stderr,"Error: Failed to build inverse vocabulary for decoding\n");
+    }
+    else
+    {
+        
+    }
+    printf("Tokenizer loaded\n");
+
+    return data;
+}
+bool tokenizer_lookup_id(const TokenizerData* data,const char* token,int* out_id)
+{
+    if(!data||!data->vocab||!token)
+    {
+        return false;
+    }
+    return hash_map_get(data->vocab,token,out_id);
+}
+bool tokenizer_lookup_token(const TokenizerData* data,int id ,const char* t1,const char* t2)
+{
+    return false;
+}
+int tokenizer_get_merge_rank(const TokenizerData* data, const char* t1,const char* t2)
+{
+    if(!data||!data->merges||!t1||!t2)
+    {
+        return -1;
+    }
+    return merge_table_get_rank(data->merges,t1,t2);
+}
+size_t tokenizer_free(TokenizerData* data)
+{
+    if(!data||data->vocab)
+    {
+        return 0;
+    }
+    return hash_map_size(data->vocab);
+}
+void tokenizer_free(TokenizerData* data)
+{
+    if(!data)
+    {
+        return ;
+    }
+    hash_map_destroy(data->vocab);
+    merge_table_destroy(data->merges);
+    hash_map_destroy(data->id_to_token);
+    free(data);
+}
+
+void tokenizer_print_stats(const TokenizerData* data) {
+    if (!data) {
+        printf("Tokenizer data: NULL\n");
+        return;
+    }
+    
+    printf("\n TOKENIZER DATA STATISTICS \n");
+    printf("Vocabulary Size: %zu\n", tokenizer_vocab_size(data));
+    printf("Merge Rules: %zu\n", merge_table_size(data->merges));
+    printf("Inverse Vocab: %s\n", data->id_to_token ? "Built" : "Not built");
+    
+    hash_map_print_stats(data->vocab);
+    merge_table_print_stats(data->merges);
+}
+
+bool tokenizer_verify(const TokenizerData* data)
+{
+    if(!data)
+    {
+        return false;
+    }
+    if(!data->merges)
+    {
+        return false;
+    }
+    if(!data->vocab)
+    {
+        return false;
+    }
+    if(hash_map_size(data->vocab)==0)
+    {
+        return false;
+    }
+    if(merge_table_size(data->merges))
+    {
+        return false;
+    }
+    return true;
 }

@@ -220,3 +220,23 @@ void hash_map_print_stats(const HashMap* map) {
            (double)total_chain_length / map->capacity);
     printf("==========================\n");
 }
+size_t hash_map_get_capacity(const HashMap* map) {
+    return map ? map->capacity : 0;
+}
+
+HashNode* hash_map_get_bucket(const HashMap* map, size_t index) {
+    if (!map || index >= map->capacity) return NULL;
+    return map->buckets[index];
+}
+
+HashNode* hash_map_get_next(HashNode* node) {
+    return node ? node->next : NULL;
+}
+
+const char* hash_map_get_key(HashNode* node) {
+    return node ? node->key : NULL;
+}
+
+int hash_map_get_value(HashNode* node) {
+    return node ? node->value : -1;
+}
