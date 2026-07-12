@@ -70,7 +70,7 @@ bool merge_table_add_rule(MergeTable* table,const char* t1,const char* t2,int ra
   table->count++;
   char key[512];
   
-  snprintf(key,sizeof(key),"%s %s",t1,t1);
+  snprintf(key,sizeof(key),"%s %s",t1,t2);
   hash_map_insert(table->rank_lookup,key,rank);
 
   return true;  
@@ -83,7 +83,7 @@ int merge_table_get_rank(const MergeTable* table,const char* t1,const char* t2)
   snprintf(key,sizeof(key),"%s %s",t1,t2);
 
   int rank;
-  if(hash_map_get(table->rank_lookup,key,&rank));
+  if(hash_map_get(table->rank_lookup,key,&rank))
   {
     return rank;
   }

@@ -16,7 +16,7 @@ void hash_map_remove(const HashMap* map,const char*);
 size_t hash_map_size(const HashMap* map);
 void hash_map_clear(HashMap* map);
 bool hash_map_contains(const HashMap* map,const char* key);
-void hash_map_print(const HashMap* map);
+void hash_map_print_stats(const HashMap* map);
 size_t hash_map_get_capacity(const HashMap* map);
 HashNode* hash_map_get_bucket(const HashMap* map, size_t index);
 HashNode* hash_map_get_next(HashNode* node);

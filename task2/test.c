@@ -1,9 +1,7 @@
+#include "tokenizer_loader.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "hashmap.h"
-#include"merge_table.h"
-
 
 void test_hash_map() {
     printf("\n=== Testing Hash Map ===\n");
@@ -63,8 +61,51 @@ void test_merge_table() {
     merge_table_destroy(table);
     printf("Merge table tests passed!\n");
 }
+
+void test_tokenizer_loader() {
+    printf("\n=== Testing Tokenizer Loader ===\n");
+    
+    // You'll need actual files for this test
+    const char* vocab_path = "vocab.json";
+    const char* merges_path = "merges.txt";
+    
+    TokenizerData* data = tokenizer_init(vocab_path, merges_path);
+    
+    if (data && tokenizer_verify(data)) {
+        printf("Tokenizer loader initialized successfully!\n");
+        tokenizer_print_stats(data);
+        
+        // Test lookups
+        int id;
+        if (tokenizer_lookup_id(data, "Hello", &id)) {
+            printf("Found 'Hello' -> id: %d\n", id);
+        }
+        
+        // Test merge rank
+        int rank = tokenizer_get_merge_rank(data, "h", "e");
+        if (rank >= 0) {
+            printf("Merge rank for 'h e': %d\n", rank);
+        }
+        
+        tokenizer_free(data);
+    } else {
+        printf("Warning: Could not load tokenizer files (files may not exist)\n");
+        printf("This is expected if you haven't downloaded the files yet.\n");
+    }
+}
+
 int main() {
+    printf("========================================\n");
+    printf("TOKENIZER LOADER TEST SUITE\n");
+    printf("========================================\n");
+    
     test_hash_map();
     test_merge_table();
+    test_tokenizer_loader();
+    
+    printf("\n========================================\n");
+    printf("ALL TESTS COMPLETED\n");
+    printf("========================================\n");
+    
     return 0;
 }

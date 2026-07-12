@@ -151,7 +151,7 @@ static MergeTable* load_merges_txt(const char* filename)
             ptr++;
         }
         size_t line_len = ptr - line_start;
-        if(line_len > 0 && line_len<sizeof(line)-1);
+        if(line_len > 0 && line_len<sizeof(line)-1)
         {
             memcpy(line,line_start,line_len);
             line[line_len] = '\0';
@@ -168,7 +168,7 @@ static MergeTable* load_merges_txt(const char* filename)
                     *token2 = '\0';
                     token2++;
 
-                    while(token2 == ' ')
+                    while(*token2 == ' ')
                     {
                         token2++;
                     }
@@ -205,8 +205,6 @@ static HashMap* build_inverse_vocab(HashMap* vocab)
         char* key;
         int value;
     }Entry;
-    Entry* entries = NULL;
-    size_t entry_count = 0;
 
     size_t capacity = hash_map_get_capacity(vocab);
 
@@ -215,7 +213,6 @@ static HashMap* build_inverse_vocab(HashMap* vocab)
         HashNode* current = hash_map_get_bucket(vocab,i);
         while(current)
         {
-            const char* token = hash_map_get_key(current);
             int id = hash_map_get_value(current);
             char key_str[32];
             snprintf(key_str,sizeof(key_str),"%d",id);
@@ -278,7 +275,8 @@ bool tokenizer_lookup_id(const TokenizerData* data,const char* token,int* out_id
     }
     return hash_map_get(data->vocab,token,out_id);
 }
-bool tokenizer_lookup_token(const TokenizerData* data,int id ,const char* t1,const char* t2)
+// tokenizer_loader.h
+bool tokenizer_lookup_token(const TokenizerData* data, int id, const char** out_token)
 {
     return false;
 }
@@ -290,7 +288,7 @@ int tokenizer_get_merge_rank(const TokenizerData* data, const char* t1,const cha
     }
     return merge_table_get_rank(data->merges,t1,t2);
 }
-size_t tokenizer_free(TokenizerData* data)
+size_t tokenizer_vocab_size(const TokenizerData* data)
 {
     if(!data||data->vocab)
     {
