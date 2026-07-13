@@ -8,8 +8,9 @@
 
 typedef struct{
     HashMap* vocab;
-    HashMap* id_to_token;
+    char** id_to_token;
     MergeTable* merges;
+    size_t array_size;
 }TokenizerData;
 //Initializer of vocab and merge files
 TokenizerData* tokennizerinit(const char* vocab_path,const char* merges_path);

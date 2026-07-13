@@ -22,5 +22,7 @@ HashNode* hash_map_get_bucket(const HashMap* map, size_t index);
 HashNode* hash_map_get_next(HashNode* node);
 const char* hash_map_get_key(HashNode* node);
 int hash_map_get_value(HashNode* node);
+size_t hash_map_get_size(const HashMap* map);
+
 
 #endif

@@ -193,34 +193,53 @@ static MergeTable* load_merges_txt(const char* filename)
     printf("Loaded %zu merge rules\n",merge_table_size(merges));
     return merges;
 }
-static HashMap* build_inverse_vocab(HashMap* vocab)
+static char** build_inverse_vocab(HashMap* vocab,size_t* out_vocab_size)
 {
-    HashMap* inverse = hash_map_create(65536);
-    if(!inverse)
+    if(!vocab)
     {
         return NULL;
     }
-
-    typedef struct{
-        char* key;
-        int value;
-    }Entry;
-
     size_t capacity = hash_map_get_capacity(vocab);
+    int max_id = -1;
 
-    for(size_t i = 0; i < capacity;i++)
+    for(size_t i = 0;i<capacity;i++)
     {
         HashNode* current = hash_map_get_bucket(vocab,i);
         while(current)
         {
             int id = hash_map_get_value(current);
-            char key_str[32];
-            snprintf(key_str,sizeof(key_str),"%d",id);
-            hash_map_insert(inverse,key_str,id);
-
+            if(id>max_id)
+            {
+                max_id = id;
+            }
             current = hash_map_get_next(current);
-
         }
+    }
+    if(max_id<0)
+    {
+        return NULL;
+    }
+    size_t array_size = max_id+1;
+    char** inverse = calloc(array_size,sizeof(char*));
+    if(!inverse)
+    {
+        return NULL;
+    }
+
+    for(size_t i = 0;i<capacity;i++)
+    {
+        HashNode* current = hash_map_get_bucket(vocab,i);
+        while(current)
+        {
+            int id = hash_map_get_value(current);
+            const char* token = hash_map_get_key(current);
+            inverse[id] = strdup(token);
+            current = hash_map_get_next(current);
+        }
+    }
+    if(out_vocab_size)
+    {
+        *out_vocab_size = array_size;
     }
     return inverse;
 }
@@ -253,15 +272,10 @@ TokenizerData* tokenizer_init(const char* vocab_path,const char* merges_path)
         free(data);
         return NULL;
     }
-
-    data->id_to_token = hash_map_create(65536);
+    data->id_to_token = build_inverse_vocab(data->vocab,&data->array_size);
     if(!data->id_to_token)
     {
         fprintf(stderr,"Error: Failed to build inverse vocabulary for decoding\n");
-    }
-    else
-    {
-        
     }
     printf("Tokenizer loaded\n");
 
@@ -275,9 +289,16 @@ bool tokenizer_lookup_id(const TokenizerData* data,const char* token,int* out_id
     }
     return hash_map_get(data->vocab,token,out_id);
 }
-// tokenizer_loader.h
-bool tokenizer_lookup_token(const TokenizerData* data, int id, const char** out_token)
-{
+bool tokenizer_lookup_token(const TokenizerData* data, int id, const char** out_token) {
+    if (!data || !data->id_to_token || id < 0 || id >= data->array_size || !out_token) 
+    {
+        return false;
+    }
+    if (data->id_to_token[id] != NULL) 
+    {
+        *out_token = data->id_to_token[id];
+        return true;
+    }
     return false;
 }
 int tokenizer_get_merge_rank(const TokenizerData* data, const char* t1,const char* t2)
@@ -290,7 +311,7 @@ int tokenizer_get_merge_rank(const TokenizerData* data, const char* t1,const cha
 }
 size_t tokenizer_vocab_size(const TokenizerData* data)
 {
-    if(!data||data->vocab)
+    if(!data||!data->vocab)
     {
         return 0;
     }
@@ -304,7 +325,17 @@ void tokenizer_free(TokenizerData* data)
     }
     hash_map_destroy(data->vocab);
     merge_table_destroy(data->merges);
-    hash_map_destroy(data->id_to_token);
+    if(data->id_to_token)
+    {
+        for(size_t i=0;i<data->array_size;i++)
+        {
+            if(data->id_to_token[i])
+            {
+                free(data->id_to_token[i]);
+            }
+        }
+        free(data->id_to_token);
+    }
     free(data);
 }
 
@@ -341,7 +372,7 @@ bool tokenizer_verify(const TokenizerData* data)
     {
         return false;
     }
-    if(merge_table_size(data->merges))
+    if(merge_table_size(data->merges)==0)
     {
         return false;
     }
