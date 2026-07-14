@@ -1,4 +1,4 @@
-#include "tokenizer_loader.h"
+#include "../include/tokenizer_loader.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -66,8 +66,8 @@ void test_tokenizer_loader() {
     printf("\n=== Testing Tokenizer Loader ===\n");
     
     // You'll need actual files for this test
-    const char* vocab_path = "vocab.json";
-    const char* merges_path = "merges.txt";
+    const char* vocab_path = "data/vocab.json";
+    const char* merges_path = "data/merges.txt";
     
     TokenizerData* data = tokenizer_init(vocab_path, merges_path);
     

@@ -1,15 +1,15 @@
-#include "hashmap.h"
+#include "../include/hashmap.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
 
-static unsigned long hash_function(const char* str) {
-    unsigned long hash = 1469598103934665603UL;  
+static unsigned long long hash_function(const char* str) {
+    unsigned long long hash = 1469598103934665603ULL;  
     
     while (*str) {
         hash ^= (unsigned char)(*str);
-        hash *= 1099511628211UL;  
+        hash *= 1099511628211ULL;  
         str++;
     }
     
@@ -161,10 +161,6 @@ bool hash_map_get(const HashMap* map,const char* key ,int* out_value){
     }
     return false;
 }
-bool hash_map_contains(const HashMap* map,const char* key){
-    int dummy;
-    return hash_map_get(map,key,&dummy);
-}
 size_t hash_map_size(const HashMap* map)
 {
     return map ? map->size:0;
@@ -184,6 +180,10 @@ void hash_map_clear(HashMap* map){
     }
     map->size = 0;
     map->version++;
+}
+bool hash_map_contains(const HashMap* map,const char* key){
+    int dummy;
+    return hash_map_get(map,key,&dummy);
 }
 void hash_map_print_stats(const HashMap* map) {
     if (!map) {
@@ -223,9 +223,7 @@ void hash_map_print_stats(const HashMap* map) {
 size_t hash_map_get_capacity(const HashMap* map) {
     return map ? map->capacity : 0;
 }
-size_t hash_map_get_size(const HashMap* map) {
-    return map ? map->size : 0;
-}
+
 HashNode* hash_map_get_bucket(const HashMap* map, size_t index) {
     if (!map || index >= map->capacity) return NULL;
     return map->buckets[index];
@@ -241,4 +239,7 @@ const char* hash_map_get_key(HashNode* node) {
 
 int hash_map_get_value(HashNode* node) {
     return node ? node->value : -1;
+}
+size_t hash_map_get_size(const HashMap* map) {
+    return map ? map->size : 0;
 }

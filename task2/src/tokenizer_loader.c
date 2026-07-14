@@ -1,6 +1,6 @@
-#include "tokenizer_loader.h"
+#include "../include/tokenizer_loader.h"
 #include<stdio.h>
-#include"hashmap.h"
+#include "../include/hashmap.h"
 #include<stdlib.h>
 #include<string.h>
 #include<stdbool.h>
@@ -35,6 +35,73 @@ static char* read_file_contents(const char* filename){
 
     return buffer;
 }
+static bool parse_json_string(const char** ptr, char* dest, size_t dest_max) {
+    if (**ptr != '"') return false;
+    (*ptr)++; // skip opening '"'
+    size_t len = 0;
+    while (**ptr && **ptr != '"') {
+        if (**ptr == '\\') {
+            (*ptr)++;
+            if (!**ptr) return false;
+            char esc = **ptr;
+            char resolved = esc;
+            switch (esc) {
+                case '"': resolved = '"'; break;
+                case '\\': resolved = '\\'; break;
+                case '/': resolved = '/'; break;
+                case 'b': resolved = '\b'; break;
+                case 'f': resolved = '\f'; break;
+                case 'n': resolved = '\n'; break;
+                case 'r': resolved = '\r'; break;
+                case 't': resolved = '\t'; break;
+                case 'u': {
+                    (*ptr)++; // skip 'u'
+                    unsigned int val = 0;
+                    for (int i = 0; i < 4; i++) {
+                        char c = **ptr;
+                        if (!c) return false;
+                        val <<= 4;
+                        if (c >= '0' && c <= '9') val += (c - '0');
+                        else if (c >= 'a' && c <= 'f') val += (c - 'a' + 10);
+                        else if (c >= 'A' && c <= 'F') val += (c - 'A' + 10);
+                        else return false;
+                        (*ptr)++;
+                    }
+                    if (val < 0x80) {
+                        if (len < dest_max - 1) dest[len++] = (char)val;
+                    } else if (val < 0x800) {
+                        if (len < dest_max - 2) {
+                            dest[len++] = (char)(0xC0 | (val >> 6));
+                            dest[len++] = (char)(0x80 | (val & 0x3F));
+                        }
+                    } else {
+                        if (len < dest_max - 3) {
+                            dest[len++] = (char)(0xE0 | (val >> 12));
+                            dest[len++] = (char)(0x80 | ((val >> 6) & 0x3F));
+                            dest[len++] = (char)(0x80 | (val & 0x3F));
+                        }
+                    }
+                    continue; // skip (*ptr)++ at the end of the while loop
+                }
+            }
+            if (len < dest_max - 1) {
+                dest[len++] = resolved;
+            }
+            (*ptr)++;
+        } else {
+            if (len < dest_max - 1) {
+                dest[len++] = **ptr;
+            }
+            (*ptr)++;
+        }
+    }
+    if (**ptr == '"') {
+        (*ptr)++; // skip closing '"'
+        dest[len] = '\0';
+        return true;
+    }
+    return false;
+}
 static HashMap* load_vocab_json(const char* filename)
 {
     printf("Loading vocab from :%s\n",filename);
@@ -42,7 +109,6 @@ static HashMap* load_vocab_json(const char* filename)
     char* json_data = read_file_contents(filename);
     if(!json_data)
     {
-
         return NULL;
     }
     HashMap* vocab = hash_map_create(65536);
@@ -55,7 +121,7 @@ static HashMap* load_vocab_json(const char* filename)
     char key[256];
     int value;
     //skipping opening braces
-    while(*ptr && *ptr !='}')
+    while(*ptr && *ptr !='{')
     {
         ptr++;
     }
@@ -68,29 +134,34 @@ static HashMap* load_vocab_json(const char* filename)
         {
             ptr++;
         }
+        if(*ptr == '}') {
+            break;
+        }
         if(*ptr != '"')
         {
             ptr++;
             continue;
         }
-        ptr++;
-        //skip opening quote
-        size_t key_len = 0;
-        while(*ptr && *ptr != '"'){
-            if(key_len < sizeof(key)-1)
-            {
-                key[key_len++] = *ptr;
-            }
-            ptr++;
+        
+        if (!parse_json_string(&ptr, key, sizeof(key))) {
+            fprintf(stderr, "ERROR: Failed to parse JSON key string\n");
+            hash_map_destroy(vocab);
+            free(json_data);
+            return NULL;
         }
-        key[key_len] = '\0';
-        ptr++;
 
-        while(*ptr && *ptr == ':')
+        while(*ptr && (*ptr == ' ' || *ptr == '\t' || *ptr == '\n' || *ptr == '\r'))
             ptr++;
         if(*ptr == ':')
         {
             ptr++;
+        }
+        else
+        {
+            fprintf(stderr, "ERROR: Expected ':' after JSON key, got '%c'\n", *ptr);
+            hash_map_destroy(vocab);
+            free(json_data);
+            return NULL;
         }
         while(*ptr&&(*ptr == ' '||*ptr == '\t'||*ptr == '\n'|| *ptr == '\r'))
             ptr++;
@@ -290,7 +361,7 @@ bool tokenizer_lookup_id(const TokenizerData* data,const char* token,int* out_id
     return hash_map_get(data->vocab,token,out_id);
 }
 bool tokenizer_lookup_token(const TokenizerData* data, int id, const char** out_token) {
-    if (!data || !data->id_to_token || id < 0 || id >= data->array_size || !out_token) 
+    if (!data || !data->id_to_token || id < 0 || (size_t)id >= data->array_size || !out_token) 
     {
         return false;
     }

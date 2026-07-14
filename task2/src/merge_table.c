@@ -1,4 +1,4 @@
-#include "merge_table.h"
+#include "../include/merge_table.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

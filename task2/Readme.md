@@ -1,2 +1,2 @@
 Command to compile is:
-gcc -Wall -Wextra -O2 -g -I. hashmap.c merge_table.c tokenizer_loader.c test.c -o test_loader -lm
+gcc -Wall -Wextra -O2 -g -Iinclude src/hashmap.c src/merge_table.c src/tokenizer_loader.c tests/test.c -o bin/test_loader -lm

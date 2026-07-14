@@ -24,5 +24,4 @@ const char* hash_map_get_key(HashNode* node);
 int hash_map_get_value(HashNode* node);
 size_t hash_map_get_size(const HashMap* map);
 
-
 #endif

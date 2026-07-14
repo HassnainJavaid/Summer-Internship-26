@@ -1,0 +1,10 @@
+# Object files
+*.o
+*.obj
+
+# Binaries
+bin/
+obj/
+*.exe
+*.out
+*.app
