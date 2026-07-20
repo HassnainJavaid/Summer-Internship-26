@@ -1,6 +1,7 @@
 #include "../include/tokenizer_loader.h"
 #include<stdio.h>
 #include "../include/hashmap.h"
+#include "../include/byte_encoder.h"
 #include<stdlib.h>
 #include<string.h>
 #include<stdbool.h>
@@ -318,6 +319,7 @@ static char** build_inverse_vocab(HashMap* vocab,size_t* out_vocab_size)
 
 TokenizerData* tokenizer_init(const char* vocab_path,const char* merges_path)
 {
+    init_byte_encoder();
     printf("Initializing Tokenizer Loader\n");
 
     TokenizerData* data = malloc(sizeof(TokenizerData));
