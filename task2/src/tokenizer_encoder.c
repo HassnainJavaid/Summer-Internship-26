@@ -48,9 +48,13 @@ static void run_bpe_on_chunk(const TokenizerData* data,const char* chunk,BPESymb
         {
             idx += 2;
         }
+        else if((b1 & 0xF0) == 0xE0)
+        {
+            idx += 3;
+        }
         else if((b1 & 0xF8) == 0xF0)
         {
-            idx+= 3;
+            idx+= 4;
         }
         else
         {

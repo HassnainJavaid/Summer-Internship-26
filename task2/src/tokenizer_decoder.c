@@ -50,56 +50,33 @@ char* tokenizer_decode(const TokenizerData* data,const int* ids,size_t len)
 
     while(idx < write_offset)
     {
-        size_t char_start = idx;
-        unsigned char b1 = (unsigned char)combined_unicode[idx];
-
-
-
-        if(b1 < 0x80)
+        int best_byte = -1;
+        size_t best_len = 0;
+        for(int b = 0; b < 256; b++)
         {
-            idx++;
-        }
-        else if((b1 & 0xE0) == 0xC0)
-        {
-            idx+=2;
-        }
-        else if((b1 & 0xF0) == 0xE0)
-        {
-            idx +=3;
-        }
-        else if((b1 & 0xF8) == 0xF0)
-        {
-            idx += 4;
-        }
-        else
-        {
-            idx++;
-        }
-
-        if(idx > write_offset)
-        {
-            idx = write_offset;
-        }
-        size_t char_len = idx - char_start;
-
-        char char_buf[8];
-        memcpy(char_buf, combined_unicode + char_start, char_len);
-        char_buf[char_len] = '\0';
-
-
-        unsigned char original_byte = 0;
-        for(int b = 0;b < 256; b++)
-        {
-            if(strcmp(get_unicode_for_byte((unsigned char)b),char_buf) == 0)
+            const char* mapping = get_unicode_for_byte((unsigned char)b);
+            size_t map_len = strlen(mapping);
+            if(idx + map_len <= write_offset && memcmp(combined_unicode + idx ,mapping , map_len) == 0)
             {
-                original_byte = (unsigned char)b;
-                break;
-            }        
+                if(map_len > best_len)
+                {
+                    best_len = map_len;
+                    best_byte = b;
+                }
+            }
         }
-        clear_text[out_idx++] = (unsigned char)original_byte; 
+        if(best_len > 0)
+        {
+            clear_text[out_idx++] = (unsigned char)best_byte;
+            idx += best_len;
+        }
+        else 
+        {
+            clear_text[out_idx++] = combined_unicode[idx++];
+        }
     }
     clear_text[out_idx] = '\0';
-    free(combined_unicode);
 
+    free(combined_unicode);
     return clear_text;
 }

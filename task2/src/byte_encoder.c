@@ -19,6 +19,13 @@ void init_byte_encoder()
             BYTE_TO_UNICODE_MAP[b][0] = (char)b;
             BYTE_TO_UNICODE_MAP[b][1] = '\0';
         }
+        else if((b >= 161 && b <= 172) || (b >= 174 && b <= 255))
+        {
+            unsigned int cp = b;
+            BYTE_TO_UNICODE_MAP[b][0] = (char)(0xC0 | (cp >> 6));
+            BYTE_TO_UNICODE_MAP[b][1] = (char)(0x80 | (cp & 0x3F));
+            BYTE_TO_UNICODE_MAP[b][2] = '\0';
+        }
         else 
         {
             unsigned int cp = 256 + n++;
