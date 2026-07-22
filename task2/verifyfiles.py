@@ -1,8 +1,24 @@
 import os
 import glob
 from pathlib import Path
-import tiktoken
+from tiktoken import Encoding
+from tiktoken.load import data_gym_to_mergeable_bpe_ranks
+from tiktoken_ext.openai_public import ENDOFTEXT, r50k_pat_str
 from tokenizer_wrapper import PyTokenizer
+
+
+def load_local_gpt2_encoding(model_dir: Path) -> Encoding:
+    """Build the GPT-2 encoding from this project's local tokenizer files."""
+    mergeable_ranks = data_gym_to_mergeable_bpe_ranks(
+        str(model_dir / "merges.txt"),
+        str(model_dir / "vocab.json"),
+    )
+    return Encoding(
+        name="local-gpt2",
+        pat_str=r50k_pat_str,
+        mergeable_ranks=mergeable_ranks,
+        special_tokens={ENDOFTEXT: 50256},
+    )
 
 def main():
     project_root = Path(__file__).resolve().parent
@@ -11,7 +27,7 @@ def main():
 
     # 1. Initialize custom C tokenizer via Cython and Tiktoken (gpt-2 encoding)
     tokenizer = PyTokenizer(str(model_dir / "vocab.json"), str(model_dir / "merges.txt"))
-    tik_enc = tiktoken.get_encoding("gpt2")
+    tik_enc = load_local_gpt2_encoding(model_dir)
 
     # 2. Collect up to 20 text files in data directory
     txt_files = sorted(glob.glob(str(data_dir / "*.txt")))[:20]

@@ -1,12 +1,24 @@
 import sys
 from pathlib import Path
-import tiktoken
+from tiktoken import Encoding
+from tiktoken.load import data_gym_to_mergeable_bpe_ranks
+from tiktoken_ext.openai_public import ENDOFTEXT, r50k_pat_str
 
 def verify_full_pipeline(original_text):
     project_root = Path(__file__).resolve().parent.parent
     artifacts_dir = project_root / "artifacts"
-    # 1. Test Encoder Output against Tiktoken Ground Truth
-    enc = tiktoken.get_encoding("gpt2")
+    # 1. Test Encoder Output against the local GPT-2 tokenizer files
+    model_dir = project_root / "data" / "tokenizer"
+    mergeable_ranks = data_gym_to_mergeable_bpe_ranks(
+        str(model_dir / "merges.txt"),
+        str(model_dir / "vocab.json"),
+    )
+    enc = Encoding(
+        name="local-gpt2",
+        pat_str=r50k_pat_str,
+        mergeable_ranks=mergeable_ranks,
+        special_tokens={ENDOFTEXT: 50256},
+    )
     expected_tokens = enc.encode(original_text)
 
     try:
