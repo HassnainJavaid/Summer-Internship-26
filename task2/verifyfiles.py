@@ -1,24 +1,28 @@
 import os
 import glob
+from pathlib import Path
 import tiktoken
 from tokenizer_wrapper import PyTokenizer
 
 def main():
+    project_root = Path(__file__).resolve().parent
+    model_dir = project_root / "data" / "tokenizer"
+    data_dir = project_root / "data" / "samples"
+
     # 1. Initialize custom C tokenizer via Cython and Tiktoken (gpt-2 encoding)
-    tokenizer = PyTokenizer("vocab.json", "merges.txt")
+    tokenizer = PyTokenizer(str(model_dir / "vocab.json"), str(model_dir / "merges.txt"))
     tik_enc = tiktoken.get_encoding("gpt2")
 
     # 2. Collect up to 20 text files in data directory
-    data_dir = "data"
-    txt_files = sorted(glob.glob(os.path.join(data_dir, "*.txt")))[:20]
+    txt_files = sorted(glob.glob(str(data_dir / "*.txt")))[:20]
 
     if not txt_files:
         print(f"No .txt files found in folder '{data_dir}'. Creating fallback files...")
-        os.makedirs(data_dir, exist_ok=True)
+        data_dir.mkdir(parents=True, exist_ok=True)
         for i in range(1, 21):
-            with open(f"{data_dir}/sample_{i}.txt", "w", encoding="utf-8") as f:
+            with open(data_dir / f"sample_{i}.txt", "w", encoding="utf-8") as f:
                 f.write(f"Sample test document number {i}\nHello world! Testing Cython verification.")
-        txt_files = sorted(glob.glob(os.path.join(data_dir, "*.txt")))[:20]
+        txt_files = sorted(glob.glob(str(data_dir / "*.txt")))[:20]
 
     print(f"\n--- Running Verification across {len(txt_files)} files ---\n")
 

@@ -4,6 +4,14 @@
 
 # Binaries
 bin/
+build/
+*.so
+*.egg-info/
+__pycache__/
+venv/
+src/python/tokenizer_wrapper.c
+artifacts/c_tokens.txt
+artifacts/decoded_output.txt
 obj/
 *.exe
 *.out

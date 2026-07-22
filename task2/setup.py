@@ -4,11 +4,12 @@ import os
 
 ext = Extension(
     name="tokenizer_wrapper",
-    sources=["src/tokenizer_wrapper.pyx"],
+    sources=["src/python/tokenizer_wrapper.pyx"],
     include_dirs=["include"],
     libraries=["tokenizer"],
-    library_dirs=["."],  # Directs linker to find libtokenizer.so / dll in root
-    extra_compile_args=["-O3"]
+    library_dirs=["build/lib"],
+    extra_compile_args=["-O3"],
+    runtime_library_dirs=["$ORIGIN/../lib"]
 )
 
 setup(
